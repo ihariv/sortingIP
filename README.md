@@ -21,7 +21,7 @@ sortingIP -in=input.txt -sep=- -out=output.txt
 
 see in repository
 
-## exampe output
+## Exampe output
 ```bash
 $ sortingIP
 8.3.29.125-8.3.30.12
