@@ -14,7 +14,7 @@ import (
 	"strings"
 )
 
-// main2 generate list of ip
+// main2 generate list of ip for test
 func main2() {
 	start := ip2Long("192.168.10.1")
 	f, _ := os.Create("input.txt")
@@ -24,11 +24,13 @@ func main2() {
 	}
 	f.Close()
 }
+
 func main() {
 
-	inPtr := flag.String("in", "input.txt", "select input file example: -in=input.txt")
-	outPtr := flag.String("out", "", "select output file example: -out=output.txt")
-	sepPtr := flag.String("sep", ",", "select separate string example: -sep=,")
+	// get parameters
+	inPtr := flag.String("in", "input.txt", "select input file. example: -in=input.txt")
+	outPtr := flag.String("out", "", "select output file. example: -out=output.txt")
+	sepPtr := flag.String("sep", ",", "select separator string. example: -sep=,")
 	flag.Parse()
 
 	realIPs := []uint32{}
@@ -39,65 +41,81 @@ func main() {
 	}
 	defer file.Close()
 
+	// read file by line
 	scanner := bufio.NewScanner(file)
 	for scanner.Scan() {
 		ipString := scanner.Text()
+
+		//search separator
 		if sep := strings.Index(ipString, *sepPtr); sep > -1 {
+			// add ip for range
 			for i := ip2Long(ipString[:sep]); i <= ip2Long(ipString[sep+1:]); i++ {
 				realIPs = append(realIPs, i)
 			}
 		} else {
+			// add ip for line
 			realIPs = append(realIPs, ip2Long(scanner.Text()))
 		}
+
+		// clear memory
 		ipString = ""
 	}
 
+	// sorting by ip
 	sort.Slice(realIPs, func(i, j int) bool {
 		return realIPs[i] < realIPs[j]
 	})
 
+	// lastIP is previous ip from work range
 	lastIP := uint32(0)
+
+	// deltaIP is previous ip from emitated range
 	deltaIP := uint32(0)
+
 	for _, ip := range realIPs {
 		if lastIP == 0 {
-
+			// init first IP
 			lastIP = ip
 			deltaIP = ip
 			continue
 		} else {
 
+			// ignore dublicates
 			if ip == deltaIP {
 				continue
 			}
 
+			// ip not is next of delta
 			if ip != deltaIP+1 {
 
+				// ip is virtual range
 				if deltaIP != lastIP {
-					//fmt.Printf("%s-%s\n", backtoIP4(int64(lastIP)), backtoIP4(int64(deltaIP)))
 					saveOutput(backtoIP4(int64(lastIP))+"-"+backtoIP4(int64(deltaIP)), *outPtr)
 					deltaIP = ip
 				} else {
-					//fmt.Printf("%s\n", backtoIP4(int64(lastIP)))
+					//ip not is virtual range
 					saveOutput(backtoIP4(int64(lastIP)), *outPtr)
 				}
 
+				// member lastIP
 				lastIP = ip
 			}
 
 		}
+		// member deltaIP
 		deltaIP = ip
 
 	}
 
+	// save last data
 	if deltaIP != lastIP {
-		// fmt.Printf("%s-%s\n", backtoIP4(int64(lastIP)), backtoIP4(int64(deltaIP)))
 		saveOutput(backtoIP4(int64(lastIP))+"-"+backtoIP4(int64(deltaIP)), *outPtr)
 	} else {
-		// fmt.Printf("%s\n", backtoIP4(int64(lastIP)))
 		saveOutput(backtoIP4(int64(lastIP)), *outPtr)
 	}
 }
 
+// saveOutput -- save data in file or stdOut
 func saveOutput(text, file string) {
 
 	if file == "" {
@@ -110,12 +128,14 @@ func saveOutput(text, file string) {
 	}
 }
 
+// ip2Long is faster convert from string to uint32
 func ip2Long(ip string) uint32 {
 	var long uint32
 	binary.Read(bytes.NewBuffer(net.ParseIP(ip).To4()), binary.BigEndian, &long)
 	return long
 }
 
+// backtoIP4 is faster convert from int64 to string
 func backtoIP4(ipInt int64) string {
 
 	// need to do two bit shifting and “0xff” masking
