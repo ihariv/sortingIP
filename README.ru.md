@@ -1,6 +1,6 @@
 # sortingIP
 
-The script generates IP address lists with support for ranges in both input and output files.
+Скрипт для сортировки-упорядочивания списков ip с поддержкой разделителей диапазонов как в входном так и в выходном файле
 
 ## Install sortingIP
 ```bash
